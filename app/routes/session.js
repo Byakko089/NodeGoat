@@ -22,13 +22,20 @@ function SessionHandler(db) {
         });
     };
 
-    this.isAdminUserMiddleware = (req, res, next) => {
+    //Fix A7 - Part 2 (1° se quita el retorno de informacion, adicionalmente se valida la informacion cotra la base usuarios, si es admin lo envia a la siguiente pagina si no, retorna al login)
+    this.isAdminUserMiddleware = function(req, res, next) {
         if (req.session.userId) {
-            return userDAO.getUserById(req.session.userId, (err, user) => user && user.isAdmin ? next() : res.redirect("/login"));
+            userDAO.getUserById(req.session.userId, function(err, user) {
+                 if(user && user.isAdmin) {
+                     next();
+                 } else {
+                     return res.redirect("/login");
+                 }
+            });
+        } else {
+            console.log("redirecting to login");
+            return res.redirect("/login");
         }
-        console.log("redirecting to login");
-        return res.redirect("/login");
-
     };
 
     this.isLoggedInMiddleware = (req, res, next) => {

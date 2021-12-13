@@ -1,4 +1,6 @@
-const SessionHandler = require("./session");
+//Fix A7 - Part 3
+//se cambia sessionhandler a variable
+var SessionHandler = require("./session");
 const ProfileHandler = require("./profile");
 const BenefitsHandler = require("./benefits");
 const ContributionsHandler = require("./contributions");
@@ -24,9 +26,10 @@ const index = (app, db) => {
 
     // Middleware to check if a user is logged in
     const isLoggedIn = sessionHandler.isLoggedInMiddleware;
-
-    //Middleware to check if user has admin rights
-    const isAdmin = sessionHandler.isAdminUserMiddleware;
+    
+    //Fix A7 - Part 3
+    //Middleware to check if user has admin rights "se cambia el parametro const hacia var para que sea variable y no genere un error"
+    var isAdmin = sessionHandler.isAdminUserMiddleware;
 
     // The main page of the app
     app.get("/", sessionHandler.displayWelcomePage);
@@ -53,13 +56,15 @@ const index = (app, db) => {
     app.get("/contributions", isLoggedIn, contributionsHandler.displayContributions);
     app.post("/contributions", isLoggedIn, contributionsHandler.handleContributionsUpdate);
 
+    /*
     // Benefits Page
     app.get("/benefits", isLoggedIn, benefitsHandler.displayBenefits);
     app.post("/benefits", isLoggedIn, benefitsHandler.updateBenefits);
-    /* Fix for A7 - checks user role to implement  Function Level Access Control
-     app.get("/benefits", isLoggedIn, isAdmin, benefitsHandler.displayBenefits);
-     app.post("/benefits", isLoggedIn, isAdmin, benefitsHandler.updateBenefits);
-     */
+    */
+
+    // Benefits Page Fix A7 - Part 1 - Verificacion de CAL
+    app.get("/benefits", isLoggedIn, isAdmin, benefitsHandler.displayBenefits);
+    app.post("/benefits", isLoggedIn, isAdmin, benefitsHandler.updateBenefits);
 
     // Allocations Page
     app.get("/allocations/:userId", isLoggedIn, allocationsHandler.displayAllocations);

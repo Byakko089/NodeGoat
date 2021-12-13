@@ -16,16 +16,21 @@ const app = express(); // Web framework to handle routing requests
 const routes = require("./app/routes");
 const { port, db, cookieSecret } = require("./config/config"); // Application config properties
 /*
-// Fix for A6-Sensitive Data Exposure
+// Fix A6 - Part 1
 // Load keys for establishing secure HTTPS connection
-const fs = require("fs");
-const https = require("https");
-const path = require("path");
-const httpsOptions = {
-    key: fs.readFileSync(path.resolve(__dirname, "./artifacts/cert/server.key")),
-    cert: fs.readFileSync(path.resolve(__dirname, "./artifacts/cert/server.crt"))
-};
+// Se cambian en el siguiente codigo la funcion const por var para que no genere error TypeError y devuelva informacion
+// Se crea un certificado ssll .pem y se cambia la ruta en key y cert
 */
+
+var fs = require("fs");
+var https = require("https");
+var path = require("path");
+const { config } = require("process");
+var httpsOptions = {
+    key: fs.readFileSync(path.resolve(__dirname, "./app/cert/key.pem")),
+    cert: fs.readFileSync(path.resolve(__dirname, "./app/cert/cert.pem"))
+};
+
 
 MongoClient.connect(db, (err, db) => {
     if (err) {
@@ -112,6 +117,15 @@ MongoClient.connect(db, (err, db) => {
     });
     */
 
+    //Fix for A8 - CSRF - Part1
+    //Enable Express csrf protection
+    app.use(express.csrf());
+
+    app.use(function(req, res, next) { 
+        res.locals.csrftoken = req.csrfToken(); 
+        next(); 
+    }); 
+
     // Register templating engine
     app.engine(".html", consolidate.swig);
     app.set("view engine", "html");
@@ -138,11 +152,19 @@ MongoClient.connect(db, (err, db) => {
         autoescape: true // default value
         */
     });
-
-    // Insecure HTTP connection
+    /*- Fix A6 - Part 2
+    // Se cambia la conexion Insegura parametrizada a continuacion y se establece la nueva conexion por HTTPS
+    
     http.createServer(app).listen(port, () => {
         console.log(`Express http server listening on port ${port}`);
     });
+    
+    */
+    
+    // Se parametriza la configuracion Segura mediante HTTPS //
+
+    https.createServer(httpsOptions, app).listen(config.port, function() {console.log(`Express https server listening on port${config.port}`);});
+
 
     /*
     // Fix for A6-Sensitive Data Exposure

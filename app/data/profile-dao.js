@@ -39,6 +39,57 @@ function ProfileDAO(db) {
     };
     */
 
+    /* Fix A6 - Part 3
+
+    // se cambia la funcion const por var para que no genere un error al ingresar una variable */
+    
+    var crypto = require("crypto");
+    
+    // Configuracion de la clave objetivo
+    var config = {
+        cryptokey: "a_Secure_key_for_Crypto_here"
+        _aes256: "aes256", // u otro algoritmo de cifrado seguro
+        get cryptoKey() {
+            return this._aes256;
+        },
+        set cryptoKey(value) {
+            this._aes256 = value;
+        },
+        iv: ""
+    };
+
+    // metodo auxiliar crea el vector de inicializacion
+    // el vector de inicializacion no es seguro, por tal motivo creamos el nuestro*/
+    
+    function createIV() {
+        // creamos una sal aleatoria para la función PBKDF2 - 16 bytes es la longitud mínima según NIST
+        var salt = crypto.randomBytes(16);
+        return crypto.pbkdf2Sync(config.cryptokey, salt, 100000, 512, "sha512");
+    }
+
+    //Meto auxiliar de encriptacion y desencriptar
+    var encrypt = function(toEncrypt) {
+        config.iv = createIV();
+        var cipher = crypto.createCipheriv(config.cryptoAlgo, config.cryptoKey, config.iv);
+        return cipher.update(toEncrypt, "utf8", "hex") + cipher.final("hex");
+    };
+
+    var decrypt = function(toDecrypt) {
+        var decipher = crypto.createDecipheriv(config.cryptoAlgo, config.cryptoKey, config.iv);
+        return decipher.update(toDecrypt, "hex", "utf8") + decipher.final("utf8");
+    };
+    
+    // Encriptar los valores luego de salvar los datos
+    user.ssn = encrypt(ssn);
+    user.dob = encrypt(dob);
+    
+    // Descrifrar valores para verlos en la vista
+    user.ssn = decrypt(user.ssn);
+    user.dob = decrypt(user.dob);
+
+    //
+    
+
     this.updateUser = (userId, firstName, lastName, ssn, dob, address, bankAcc, bankRouting, callback) => {
 
         // Create user document
