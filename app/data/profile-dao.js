@@ -10,7 +10,7 @@ function ProfileDAO(db) {
         return new ProfileDAO(db);
     }
 
-    const users = db.collection("users");
+    var users = db.collection("users");
 
     /* Fix for A6 - Sensitive Data Exposure
 
@@ -44,50 +44,24 @@ function ProfileDAO(db) {
     // se cambia la funcion const por var para que no genere un error al ingresar una variable */
     
     var crypto = require("crypto");
-
-    //Set keys config object
-    var config = {
-        cryptoKey: "a_secure_key_for_crypto_here",
-        cryptoAlgo: "aes256", // or other secure encryption algo here
-        iv: ""
-    };
-
-    // metodo auxiliar crea el vector de inicializacion
-    // el vector de inicializacion no es seguro, por tal motivo creamos el nuestro*/
-    
-    var createIV = function() {
-        // Crea un salt aleatorio para la funcion - tomando como longitud minima los 16 bits segun NIST
-        var salt = crypto.randomBytes(16);
-        return crypto.pbkdf2Sync(config.cryptoKey, salt, 100000, 512, "sha512");
-    };
+    var config = require("../../config/config");
 
     //Meto auxiliar de encriptacion y desencriptar
     var encrypt = function(toEncrypt) {
-        config.iv = createIV();
-        var cipher = crypto.createCipheriv(config.cryptoAlgo, config.cryptoKey, config.iv);
+        var cipher = crypto.CreateCipher(config.cryptoAlgo, config.cryptoKey);
         return cipher.update(toEncrypt, "utf8", "hex") + cipher.final("hex");
     };
 
     var decrypt = function(toDecrypt) {
-        var decipher = crypto.createDecipheriv(config.cryptoAlgo, config.cryptoKey, config.iv);
+        var decipher = crypto.CreateDecipher(config.cryptoAlgo, config.cryptoKey);
         return decipher.update(toDecrypt, "hex", "utf8") + decipher.final("utf8");
     };
     
-    // Encriptar los valores luego de salvar los datos
-    user.ssn = encrypt(ssn);
-    user.dob = encrypt(dob);
     
-    // Descrifrar valores para verlos en la vista
-    user.ssn = decrypt(user.ssn);
-    user.dob = decrypt(user.dob);
-
-    //
-    
-
-    this.updateUser = (userId, firstName, lastName, ssn, dob, address, bankAcc, bankRouting, callback) => {
+    this.updateUser = function(userId, firstName, lastName, ssn, dob, address, bankAcc, bankRouting, callback) {
 
         // Create user document
-        const user = {};
+        var user = {};
         if (firstName) {
             user.firstName = firstName;
         }
@@ -103,13 +77,15 @@ function ProfileDAO(db) {
         if (bankRouting) {
             user.bankRouting = bankRouting;
         }
+        /*
         if (ssn) {
             user.ssn = ssn;
         }
         if (dob) {
             user.dob = dob;
         }
-        /*
+        */
+       
         // Fix for A7 - Sensitive Data Exposure
         // Store encrypted ssn and DOB
         if(ssn) {
@@ -118,14 +94,14 @@ function ProfileDAO(db) {
         if(dob) {
             user.dob = encrypt(dob);
         }
-        */
+
 
         users.update({
                 _id: parseInt(userId)
             }, {
                 $set: user
             },
-            err => {
+            function (err, result) {
                 if (!err) {
                     console.log("Updated user profile");
                     return callback(null, user);
@@ -136,18 +112,19 @@ function ProfileDAO(db) {
         );
     };
 
-    this.getByUserId = (userId, callback) => {
+    this.getByUserId = function(userId, callback) {
         users.findOne({
                 _id: parseInt(userId)
             },
-            (err, user) => {
+            function(err, user)  {
                 if (err) return callback(err, null);
                 /*
                 // Fix for A6 - Sensitive Data Exposure
-                // Decrypt ssn and DOB values to display to user
+                // Decrypt ssn and DOB values to display to user*/
+
                 user.ssn = user.ssn ? decrypt(user.ssn) : "";
                 user.dob = user.dob ? decrypt(user.dob) : "";
-                */
+                
 
                 callback(null, user);
             }
