@@ -44,28 +44,22 @@ function ProfileDAO(db) {
     // se cambia la funcion const por var para que no genere un error al ingresar una variable */
     
     var crypto = require("crypto");
-    
-    // Configuracion de la clave objetivo
+
+    //Set keys config object
     var config = {
-        cryptokey: "a_Secure_key_for_Crypto_here"
-        _aes256: "aes256", // u otro algoritmo de cifrado seguro
-        get cryptoKey() {
-            return this._aes256;
-        },
-        set cryptoKey(value) {
-            this._aes256 = value;
-        },
+        cryptoKey: "a_secure_key_for_crypto_here",
+        cryptoAlgo: "aes256", // or other secure encryption algo here
         iv: ""
     };
 
     // metodo auxiliar crea el vector de inicializacion
     // el vector de inicializacion no es seguro, por tal motivo creamos el nuestro*/
     
-    function createIV() {
-        // creamos una sal aleatoria para la función PBKDF2 - 16 bytes es la longitud mínima según NIST
+    var createIV = function() {
+        // Crea un salt aleatorio para la funcion - tomando como longitud minima los 16 bits segun NIST
         var salt = crypto.randomBytes(16);
-        return crypto.pbkdf2Sync(config.cryptokey, salt, 100000, 512, "sha512");
-    }
+        return crypto.pbkdf2Sync(config.cryptoKey, salt, 100000, 512, "sha512");
+    };
 
     //Meto auxiliar de encriptacion y desencriptar
     var encrypt = function(toEncrypt) {
