@@ -1,4 +1,5 @@
 FROM node:12-alpine
+ENV user nodegoat_docker
 ENV WORKDIR /usr/src/app/
 WORKDIR $WORKDIR
 COPY package*.json $WORKDIR

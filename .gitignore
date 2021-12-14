@@ -19,5 +19,8 @@ Icon?
 # Zap output
 report*.html
 
+# VisualCode
+.vscode/**
+
 # e2e
 test/e2e/screenshots/
